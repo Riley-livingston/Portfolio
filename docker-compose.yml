@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: disney_catalog_db
+    environment:
+      POSTGRES_DB: disney_catalog
+      POSTGRES_USER: disney
+      POSTGRES_PASSWORD: disney
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schemas/ddl:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U disney -d disney_catalog"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    container_name: disney_catalog_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

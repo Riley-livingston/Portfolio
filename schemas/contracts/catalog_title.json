@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DisneyPlusCatalogTitle",
+  "type": "object",
+  "required": [
+    "content_id",
+    "title",
+    "title_normalized",
+    "content_type",
+    "franchise",
+    "certified_fresh",
+    "credits",
+    "is_original"
+  ],
+  "properties": {
+    "content_id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "title_normalized": { "type": "string", "minLength": 1 },
+    "content_type": {
+      "type": "string",
+      "enum": ["movie", "series", "short", "live_sports"]
+    },
+    "release_year": { "type": ["integer", "null"], "minimum": 1900, "maximum": 2100 },
+    "date_added": { "type": ["string", "null"], "format": "date" },
+    "content_rating": { "type": ["string", "null"] },
+    "genres": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "franchise": { "type": "string", "minLength": 1 },
+    "runtime_minutes": { "type": ["integer", "null"], "minimum": 0 },
+    "season_count": { "type": ["integer", "null"], "minimum": 0 },
+    "slug": { "type": ["string", "null"] },
+    "just_watch_url": { "type": ["string", "null"] },
+    "description": { "type": ["string", "null"] },
+    "credits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "role"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "enum": ["director", "cast"] },
+          "billing_order": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "original_language": { "type": ["string", "null"] },
+    "collections": { "type": "array", "items": { "type": "string" } },
+    "is_original": { "type": "boolean" },
+    "imdb_rating": { "type": ["number", "null"], "minimum": 0, "maximum": 10 },
+    "imdb_votes": { "type": ["integer", "null"], "minimum": 0 },
+    "rotten_tomatoes_score": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+    "certified_fresh": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}
