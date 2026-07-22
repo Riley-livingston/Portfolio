@@ -171,3 +171,50 @@ def fig_franchise_imdb_quality(
     )
     fig.update_layout(margin=dict(l=8, r=64, t=80, b=48))
     return fig, agg
+
+
+def fig_talent_imdb_by_role(
+    talent_df: pd.DataFrame,
+    role: str,
+    catalog_avg: float,
+    top_n: int = 12,
+    min_titles: int = 8,
+) -> tuple[go.Figure, pd.DataFrame]:
+    """Top directors or cast by average IMDb across credited titles."""
+    role_label = "directors" if role == "director" else "cast"
+    df = talent_df[(talent_df["role"] == role) & (talent_df["titles"] >= min_titles)].copy()
+    if df.empty:
+        return apply_plotly_theme(go.Figure(), f"Top {role_label} by average IMDb", height=420), df
+
+    agg = df.nlargest(top_n, "avg_imdb").sort_values("avg_imdb", ascending=True)
+    bar_count = len(agg)
+    height = max(400, 30 * bar_count + 100)
+    colors = ["#A78BFA" if rating >= catalog_avg else "#64748b" for rating in agg["avg_imdb"]]
+
+    fig = go.Figure(
+        go.Bar(
+            y=agg["person_name"],
+            x=agg["avg_imdb"],
+            orientation="h",
+            marker=dict(color=colors),
+            text=[f"{row.avg_imdb:.1f} ({int(row.titles):,})" for row in agg.itertuples()],
+            textposition="outside",
+            textfont=dict(size=10, color="#c9d1d9"),
+            hovertemplate=(
+                "<b>%{y}</b><br>Avg IMDb: %{x:.2f}<br>"
+                "Credited titles: %{customdata:,}<extra></extra>"
+            ),
+            customdata=agg["titles"],
+        )
+    )
+    fig.add_vline(x=catalog_avg, line_width=2, line_dash="dash", line_color="#FFE066")
+    fig.update_xaxes(title="Average IMDb rating", range=[0, 10.5], dtick=1)
+    fig.update_yaxes(title="", automargin=True, tickfont=dict(size=10))
+    fig.update_layout(showlegend=False)
+    fig = apply_plotly_theme(
+        fig,
+        f"Highest-rated {role_label} (min. {min_titles} titles)",
+        height=height,
+    )
+    fig.update_layout(margin=dict(l=8, r=64, t=80, b=48))
+    return fig, agg

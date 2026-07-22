@@ -77,3 +77,22 @@ def imdb_ratings_scatter() -> pd.DataFrame:
         ORDER BY release_year
         """
     )
+
+
+def talent_imdb_ratings() -> pd.DataFrame:
+    return query_df(
+        """
+        SELECT
+            c.person_name,
+            c.role,
+            COUNT(DISTINCT c.content_id)::int AS titles,
+            ROUND(AVG(m.imdb_rating)::numeric, 2) AS avg_imdb
+        FROM dis_credits c
+        JOIN dis_main m ON m.content_id = c.content_id
+        WHERE m.imdb_rating IS NOT NULL
+          AND LENGTH(TRIM(c.person_name)) > 2
+        GROUP BY c.person_name, c.role
+        HAVING COUNT(DISTINCT c.content_id) >= 3
+        ORDER BY avg_imdb DESC, titles DESC
+        """
+    )

@@ -7,12 +7,14 @@ from dashboard.insights import (
     fig_franchise_genre_heatmap,
     fig_franchise_imdb_quality,
     fig_release_decades,
+    fig_talent_imdb_by_role,
 )
 from dashboard.queries import (
     franchise_genre_matrix,
     franchise_stats,
     imdb_ratings_scatter,
     release_decade,
+    talent_imdb_ratings,
 )
 from dashboard.theme import inject_styles
 
@@ -20,8 +22,8 @@ inject_styles()
 
 st.title("Catalog Insights")
 st.markdown(
-    '<p class="eda-caption">Four views of catalog strategy: composition, genre positioning, '
-    "release-era depth, and which franchises earn the highest average IMDb scores.</p>",
+    '<p class="eda-caption">Catalog strategy views plus talent analysis — who is credited on the '
+    "highest-rated titles in the library.</p>",
     unsafe_allow_html=True,
 )
 
@@ -79,6 +81,40 @@ try:
             f"Hover any bar for exact scores.</div>",
             unsafe_allow_html=True,
         )
+
+    st.markdown("---")
+    st.subheader("Talent & ratings")
+    st.markdown(
+        '<p class="eda-caption">Average IMDb score across titles each person is credited on '
+        f"(director or cast). Minimum <b>8</b> credited titles to qualify.</p>",
+        unsafe_allow_html=True,
+    )
+    talent = talent_imdb_ratings()
+    catalog_avg = float(ratings["imdb_rating"].mean()) if not ratings.empty else 6.5
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        director_fig, directors = fig_talent_imdb_by_role(talent, "director", catalog_avg)
+        st.plotly_chart(director_fig, use_container_width=True)
+        if not directors.empty:
+            best = directors.sort_values("avg_imdb", ascending=False).iloc[0]
+            st.markdown(
+                f'<div class="eda-insight"><b>Director:</b> <b>{best["person_name"]}</b> averages '
+                f"<b>{best['avg_imdb']:.1f}</b> across {int(best['titles']):,} rated titles.</div>",
+                unsafe_allow_html=True,
+            )
+
+    with col2:
+        cast_fig, cast = fig_talent_imdb_by_role(talent, "cast", catalog_avg)
+        st.plotly_chart(cast_fig, use_container_width=True)
+        if not cast.empty:
+            best = cast.sort_values("avg_imdb", ascending=False).iloc[0]
+            st.markdown(
+                f'<div class="eda-insight"><b>Cast:</b> <b>{best["person_name"]}</b> averages '
+                f"<b>{best['avg_imdb']:.1f}</b> across {int(best['titles']):,} rated titles.</div>",
+                unsafe_allow_html=True,
+            )
 
 except Exception as exc:
     st.warning(f"Connect Postgres and run `make load && make views`. ({exc})")
