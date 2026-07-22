@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from ingestion.credits import credits_from_record
 from scraper.genres import normalize_collections, normalize_genres
+from scraper.normalize import derive_franchise, load_franchise_overrides
+from scraper.originals import derive_is_original
 
 
 def migrate_record(record: dict) -> dict:
@@ -23,9 +25,22 @@ def migrate_record(record: dict) -> dict:
 
     genres = normalize_genres(migrated.get("genres") or [])
     migrated["genres"] = genres
-    migrated["collections"] = normalize_collections(
-        migrated.get("franchise", "Other"),
-        genres,
+
+    overrides = load_franchise_overrides()
+    franchise = derive_franchise(
+        migrated.get("title", ""),
+        migrated.get("collections"),
+        migrated.get("content_id"),
+        overrides,
+        genres=genres,
+    )
+    migrated["franchise"] = franchise
+    migrated["collections"] = normalize_collections(franchise, genres)
+    migrated["is_original"] = derive_is_original(
+        migrated.get("title", ""),
+        migrated.get("content_type", "movie"),
+        migrated.get("release_year"),
+        franchise,
     )
     migrated["certified_fresh"] = bool(migrated.get("certified_fresh"))
     if migrated.get("is_original") is None:

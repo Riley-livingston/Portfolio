@@ -55,3 +55,25 @@ def freshness_data() -> pd.DataFrame:
         "SELECT title, franchise, release_year, date_added, library_age_years, months_release_to_catalog "
         "FROM v_freshness WHERE date_added IS NOT NULL ORDER BY date_added DESC LIMIT 100"
     )
+
+
+def franchise_genre_matrix() -> pd.DataFrame:
+    return query_df(
+        """
+        SELECT franchise, genre, COUNT(*)::int AS title_count
+        FROM dis_main, UNNEST(genres) AS genre
+        GROUP BY franchise, genre
+        ORDER BY title_count DESC
+        """
+    )
+
+
+def imdb_ratings_scatter() -> pd.DataFrame:
+    return query_df(
+        """
+        SELECT title, franchise, release_year, imdb_rating, imdb_votes
+        FROM dis_main
+        WHERE imdb_rating IS NOT NULL AND release_year IS NOT NULL
+        ORDER BY release_year
+        """
+    )

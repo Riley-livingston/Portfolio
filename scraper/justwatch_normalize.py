@@ -56,7 +56,7 @@ def normalize_justwatch_node(node: dict[str, Any]) -> dict[str, Any]:
     release_year = content.get("originalReleaseYear")
 
     overrides = load_franchise_overrides()
-    franchise = derive_franchise(title, genres, content_id, overrides)
+    franchise = derive_franchise(title, genres, content_id, overrides, genres=genres)
     collections = normalize_collections(franchise, genres)
     scoring = content.get("scoring") or {}
     credits = parse_justwatch_credits(content.get("credits"))

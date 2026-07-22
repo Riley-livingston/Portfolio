@@ -37,7 +37,7 @@ migrate:
 	docker exec -i disney_catalog_db psql -U disney -d disney_catalog < schemas/ddl/007_drop_media_format.sql
 
 dashboard:
-	$(VENV)/streamlit run dashboard/app.py --server.port 8501
+	PYTHONPATH=. $(VENV)/streamlit run dashboard/app.py --server.port 8501
 
 notebook:
 	$(VENV)/jupyter notebook notebooks/

@@ -10,16 +10,38 @@ from pathlib import Path
 from typing import Any
 
 from scraper.config import FRANCHISE_OVERRIDES
+from scraper.ip_groups import match_ip_franchise
 
 FRANCHISE_KEYWORDS: list[tuple[str, list[str]]] = [
-    ("Marvel", ["marvel", "avengers", "spider-man", "spiderman", "x-men", "deadpool", "loki", "wandavision"]),
-    ("StarWars", ["star wars", "mandalorian", "ahsoka", "andor", "obi-wan", "skeleton crew"]),
-    ("Pixar", ["pixar", "toy story", "finding nemo", "monsters inc", "inside out", "cars", "up", "coco"]),
-    ("NatGeo", ["national geographic", "nat geo", "cosmos", "welcome to earth"]),
-    ("Star", ["star original", "only murders", "the bear"]),
-    ("ESPN", ["espn", "30 for 30", "nfl", "nba", "monday night football"]),
+    ("Marvel", [
+        "marvel", "avengers", "spider-man", "spiderman", "x-men", "deadpool", "loki", "wandavision",
+        "what if", "she-hulk", "moon knight", "ms. marvel", "ms marvel", "hawkeye", "ironheart",
+        "secret invasion", "daredevil", "punisher", "defenders", "agents of s.h.i.e.l.d", "agent carter",
+        "inhumans", "runaways", "cloak and dagger", "helstrom", "hit-monkey", "modok", "m.o.d.o.k",
+        "thunderbolts", "agatha", "echo", "iron fist", "luke cage", "jessica jones",
+    ]),
+    ("StarWars", [
+        "star wars", "mandalorian", "ahsoka", "andor", "obi-wan", "skeleton crew", "bad batch",
+        "clone wars", "rebels", "young jedi adventures", "book of boba fett",
+    ]),
+    ("Pixar", [
+        "pixar", "toy story", "finding nemo", "finding dory", "monsters inc", "monsters university",
+        "inside out", "cars", "up", "coco", "soul", "luca", "onward", "turning red", "elemental",
+        "ratatouille", "wall-e", "wall e", "walle", "bug's life", "incredibles", "lightyear", "elio",
+        "hoppers", "win or lose", "dug days",
+    ]),
+    ("NatGeo", [
+        "national geographic", "nat geo", "cosmos", "welcome to earth", "oceanxplorers",
+        "dr. oakley", "dr oakley", "secrets of the", "wild ", "animal kingdom", "america's national parks",
+        "life below zero", "wicked tuna", "port protection", "prisoner of the pines",
+    ]),
+    ("Star", ["star original", "only murders", "the bear", "shogun", "the Kardashians"]),
+    ("ESPN", ["espn", "30 for 30", "nfl", "nba", "monday night football", "peyton's places", "detail"]),
     ("Hulu", ["hulu", "handmaid", "only murders in the building"]),
-    ("Disney", ["disney", "mickey", "frozen", "moana", "encanto", "zootopia", "lion king", "aladdin", "mulan", "bluey", "simpson"]),
+    ("Disney", [
+        "disney", "mickey", "frozen", "moana", "encanto", "zootopia", "lion king", "aladdin", "mulan",
+        "bluey", "simpson", "disneyland", "disney channel",
+    ]),
 ]
 
 COLLECTION_FRANCHISE_MAP = {
@@ -88,11 +110,12 @@ def derive_franchise(
     collections: list[str] | None = None,
     content_id: str | None = None,
     overrides: dict[str, str] | None = None,
+    genres: list[str] | None = None,
 ) -> str:
     if content_id and overrides and content_id in overrides:
         return overrides[content_id]
 
-    haystack = " ".join([title, *(collections or [])]).lower()
+    haystack = " ".join([title, *(collections or []), *(genres or [])]).lower()
     for needle, franchise in COLLECTION_FRANCHISE_MAP.items():
         if needle in haystack:
             return franchise
@@ -100,6 +123,16 @@ def derive_franchise(
     for franchise, keywords in FRANCHISE_KEYWORDS:
         if any(keyword in haystack for keyword in keywords):
             return franchise
+
+    ip_match = match_ip_franchise(haystack)
+    if ip_match:
+        return ip_match
+
+    genre_text = " ".join(genres or []).lower()
+    if "documentary" in genre_text:
+        return "NatGeo"
+    if "sport" in genre_text:
+        return "ESPN"
 
     return "Other"
 
@@ -176,7 +209,7 @@ def normalize_search_hit(hit: dict[str, Any], scraped_at: datetime | None = None
         "date_added": date_added.isoformat() if date_added else None,
         "content_rating": hit.get("rating") or hit.get("contentRating"),
         "genres": genres,
-        "franchise": derive_franchise(title, collections, str(content_id)),
+        "franchise": derive_franchise(title, collections, str(content_id), genres=genres),
         "runtime_minutes": parse_runtime_minutes(hit.get("runtimeMillis", 0) // 60000 if hit.get("runtimeMillis") else hit.get("runtime")),
         "season_count": hit.get("seasonCount"),
         "slug": slug,
@@ -289,5 +322,6 @@ def apply_franchise_overrides(record: dict[str, Any], overrides: dict[str, str])
         record.get("collections"),
         record.get("content_id"),
         overrides,
+        genres=record.get("genres"),
     )
     return record

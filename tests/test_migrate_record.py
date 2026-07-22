@@ -6,8 +6,8 @@ from ingestion.migrate_record import migrate_record
 def test_migrate_legacy_fields():
     record = {
         "content_id": "tm1",
-        "title": "Test",
-        "title_normalized": "test",
+        "title": "Avengers: Endgame",
+        "title_normalized": "avengers endgame",
         "content_type": "movie",
         "franchise": "Marvel",
         "genres": ["act", "scf"],
@@ -29,6 +29,7 @@ def test_migrate_legacy_fields():
     assert "directors" not in migrated
     assert "cast" not in migrated
     assert migrated["genres"] == ["Action & Adventure", "Science-Fiction"]
+    assert migrated["franchise"] == "Marvel"
     assert migrated["collections"] == ["Marvel"]
     assert migrated["certified_fresh"] is False
     assert len(migrated["credits"]) == 2

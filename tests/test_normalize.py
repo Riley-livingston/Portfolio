@@ -15,7 +15,13 @@ def test_derive_franchise_from_collections():
 
 def test_derive_franchise_from_title():
     assert derive_franchise("Bluey") == "Disney"
-    assert derive_franchise("Shogun", []) == "Other"
+    assert derive_franchise("Shogun", []) == "Star"
+    assert derive_franchise("Pirates of the Caribbean: The Curse of the Black Pearl") == "Pirates of the Caribbean"
+    assert derive_franchise("Indiana Jones and the Last Crusade") == "Indiana Jones"
+
+
+def test_derive_franchise_documentary_fallback():
+    assert derive_franchise("Wild Alaska", genres=["Documentary"]) == "NatGeo"
 
 
 def test_franchise_override():

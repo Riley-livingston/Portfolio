@@ -63,6 +63,13 @@ def normalize_collections(franchise: str, genres: list[str]) -> list[str]:
         "Hulu": "Hulu",
         "Star": "Star Originals",
         "Disney": "Disney",
+        "20th Century Studios": "20th Century",
+        "Disney Channel": "Disney Channel",
+        "Pirates of the Caribbean": "Disney Live Action",
+        "Indiana Jones": "Lucasfilm",
+        "Winnie the Pooh": "Disney Animation",
+        "Classic Disney Animation": "Disney Animation",
+        "Princess Stories": "Disney Princess",
     }
     if franchise in franchise_collections:
         add(franchise_collections[franchise])
